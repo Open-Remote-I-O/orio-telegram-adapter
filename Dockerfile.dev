@@ -1,0 +1,7 @@
+FROM docker.io/library/golang:1.21.6-bullseye
+
+RUN go install github.com/cosmtrek/air@v1.49.0
+
+WORKDIR /app
+
+CMD ["air", "-c", ".air.toml"]

@@ -1,0 +1,65 @@
+//go:build mage
+// +build mage
+
+package main
+
+import (
+	"fmt"
+	"os"
+	"os/exec"
+
+	"github.com/magefile/mage/mg" // mg contains helpful utility functions, like Deps
+)
+
+// Default target to run when none is specified
+// If not set, running mage will list available targets
+// var Default = Build
+
+// A build step that requires additional params, or platform specific steps for example
+func Build() error {
+	mg.Deps(InstallDeps)
+	fmt.Println("Building...")
+	cmd := exec.Command("go", "build", "-o", "MyApp", ".")
+	return cmd.Run()
+}
+
+// A custom install step if you need your bin someplace other than go/bin
+func Install() error {
+	mg.Deps(Build)
+	fmt.Println("Installing...")
+	return os.Rename("./MyApp", "/usr/bin/MyApp")
+}
+
+// Manage your deps, or running package managers.
+func InstallDeps() error {
+	fmt.Println("Installing Deps...")
+	cmd := exec.Command("go", "mod", "download")
+	return cmd.Run()
+}
+
+// Launch local docker compose with telegram bot and sqlite database
+func LaunchLocalEnv() error {
+	fmt.Println("Preparing to launch local env")
+	fmt.Println(
+		"launching command",
+		"podman-compose",
+		"up",
+		"-d",
+		"--build",
+		"--remove-orphans",
+	)
+	cmd := exec.Command(
+		"podman-compose",
+		"up",
+		"-d",
+		"--build",
+		"--remove-orphans",
+	)
+	return cmd.Run()
+}
+
+// Clean up after yourself
+func Clean() {
+	fmt.Println("Cleaning...")
+	os.RemoveAll("MyApp")
+}
