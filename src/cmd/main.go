@@ -5,14 +5,33 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"database/sql"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 // Send any text message to the bot after the bot has been started
 
 func main() {
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+
+	log.Print("hello world")
+	fmt.Println("starting bot")
+	db, err := sql.Open("sqlite3", "./docker-volume-config/sql/database.db")
+	if err != nil {
+		fmt.Println(err)
+		panic(err)
+	}
+	err = db.Ping()
+	if err != nil {
+		fmt.Println(err)
+		panic(err)
+	}
+
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
