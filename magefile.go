@@ -16,17 +16,33 @@ import (
 
 // A build step that requires additional params, or platform specific steps for example
 func Build() error {
-	mg.Deps(InstallDeps)
+	mg.Deps(Install_deps)
 	fmt.Println("Building...")
-	cmd := exec.Command("go", "build", "-o", "MyApp", ".")
-	return cmd.Run()
+	cmd := exec.Command(
+		"RUN CGO_ENABLED=0",
+		"GOOS=linux", 
+		"GOARCH=amd64",
+		"go",
+		"build",
+		"-o",
+		"./orio-telegram-adapter",
+		"./src/cmd/main.go",
+	)
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("%e",err)
+	}
+	return nil
+
 }
 
 // Manage your deps, or running package managers.
-func InstallDeps() error {
+func Install_deps() error {
 	fmt.Println("Installing Deps...")
 	cmd := exec.Command("go", "mod", "download")
-	return cmd.Run()
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("%e",err)
+	}
+	return nil
 }
 
 // Launch local docker compose with telegram bot and sqlite database
@@ -47,11 +63,14 @@ func Dev() error {
 		"--build",
 		"--remove-orphans",
 	)
-	return cmd.Run()
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("%e",err)
+	}
+	return nil
 }
 
 // Deploy to your fly io account, note that you must have flyctl configured for this step
-func FlyDeploy() error {
+func Deploy_fly() error {
 	fmt.Println("Preparing to deploy to fly io")
 	fmt.Println(
 		"flyctl",
@@ -63,5 +82,8 @@ func FlyDeploy() error {
 		"deploy",
 		"--ha=false",
 	)
-	return cmd.Run()
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("%e",err)
+	}
+	return nil
 }

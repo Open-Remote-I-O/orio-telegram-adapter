@@ -6,7 +6,6 @@ require github.com/go-telegram/bot v1.0.1
 
 require (
 	github.com/magefile/mage v1.15.0
-	github.com/mattn/go-sqlite3 v1.14.19
 	github.com/rs/zerolog v1.31.0
 )
 
