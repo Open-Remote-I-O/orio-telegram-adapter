@@ -5,7 +5,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
 
 	"github.com/magefile/mage/mg" // mg contains helpful utility functions, like Deps
@@ -17,28 +16,37 @@ import (
 
 // A build step that requires additional params, or platform specific steps for example
 func Build() error {
-	mg.Deps(InstallDeps)
+	mg.Deps(Install_deps)
 	fmt.Println("Building...")
-	cmd := exec.Command("go", "build", "-o", "MyApp", ".")
-	return cmd.Run()
-}
+	cmd := exec.Command(
+		"RUN CGO_ENABLED=0",
+		"GOOS=linux", 
+		"GOARCH=amd64",
+		"go",
+		"build",
+		"-o",
+		"./orio-telegram-adapter",
+		"./src/cmd/main.go",
+	)
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("%e",err)
+	}
+	return nil
 
-// A custom install step if you need your bin someplace other than go/bin
-func Install() error {
-	mg.Deps(Build)
-	fmt.Println("Installing...")
-	return os.Rename("./MyApp", "/usr/bin/MyApp")
 }
 
 // Manage your deps, or running package managers.
-func InstallDeps() error {
+func Install_deps() error {
 	fmt.Println("Installing Deps...")
 	cmd := exec.Command("go", "mod", "download")
-	return cmd.Run()
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("%e",err)
+	}
+	return nil
 }
 
 // Launch local docker compose with telegram bot and sqlite database
-func LaunchLocalEnv() error {
+func Dev() error {
 	fmt.Println("Preparing to launch local env")
 	fmt.Println(
 		"launching command",
@@ -55,11 +63,27 @@ func LaunchLocalEnv() error {
 		"--build",
 		"--remove-orphans",
 	)
-	return cmd.Run()
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("%e",err)
+	}
+	return nil
 }
 
-// Clean up after yourself
-func Clean() {
-	fmt.Println("Cleaning...")
-	os.RemoveAll("MyApp")
+// Deploy to your fly io account, note that you must have flyctl configured for this step
+func Deploy_fly() error {
+	fmt.Println("Preparing to deploy to fly io")
+	fmt.Println(
+		"flyctl",
+		"deploy",
+		"--ha=false",
+	)
+	cmd := exec.Command(
+		"flyctl",
+		"deploy",
+		"--ha=false",
+	)
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("%e",err)
+	}
+	return nil
 }

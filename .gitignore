@@ -60,4 +60,4 @@ tag
 [._]*.un~
 
 docker-volume-config/
-bot.env
+docker-compose.env

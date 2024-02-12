@@ -3,40 +3,38 @@ package main
 import (
 	"context"
 	"fmt"
+	"orio-telegram-adapter/src/internal/adapters"
+	"orio-telegram-adapter/src/internal/services"
 	"os"
-	"os/signal"
 
-	"github.com/go-telegram/bot"
-	"github.com/go-telegram/bot/models"
+	"github.com/rs/zerolog"
 )
 
 // Send any text message to the bot after the bot has been started
 
 func main() {
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
-	defer cancel()
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 
-	opts := []bot.Option{
-		bot.WithDefaultHandler(handler),
-	}
+	logger := zerolog.New(os.Stderr).With().Timestamp().Logger()
 
-	botApiKey, envIsPresent := os.LookupEnv("BOT_API_KEY")
-	if !envIsPresent {
-		fmt.Println("missing env variable")
-	}
+	logger.Debug().
+		Msg("logger was configured and instantiated successfully")
 
-	b, err := bot.New(botApiKey, opts...)
+	remoteControlAdapter, err := adapters.NewTelegramRemoteControlAdapter(&logger)
 	if err != nil {
 		fmt.Println(err)
 		panic(err)
 	}
 
-	b.Start(ctx)
-}
+	remoteControlService := services.NewRemoteControlService(
+		&remoteControlAdapter,
+	)
 
-func handler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: update.Message.Chat.ID,
-		Text:   update.Message.Text,
-	})
+	logger.Debug().
+		Msg("Remote control service configured and instantiated successfully")
+ 
+	remoteControlService.StartServer(context.TODO())
+
+	logger.Debug().
+		Msg("remote control service started")
 }
