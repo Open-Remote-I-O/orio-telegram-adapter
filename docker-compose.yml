@@ -1,21 +1,11 @@
 version: '3.8'
 services:
   orio-telegram-adapter-local:
-    # TODO: investigate how to start container without it
+    # TODO: investigate how to start container without it when using podman as container engine
     privileged: true
     build:
       dockerfile: Dockerfile.dev
       context: .
     volumes:
       - ./:/app
-    env_file: ./bot.env
-  local-orio-db:
-    # TODO: investigate how to start container without it
-    privileged: true
-    image: docker.io/keinos/sqlite3:latest
-    volume:
-      - ./docker-volume-config/sqlite:/workspace
-    depends_on:
-      orio-telegram-adapter-local:
-        condition: service_healthy
-
+    env_file: ./docker-compose.env
