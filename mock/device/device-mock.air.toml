@@ -4,20 +4,20 @@ tmp_dir = "./docker-volume-config/tmp"
 
 [build]
   args_bin = []
-  bin = "./docker-volume-config/main"
-  cmd = "go build -o ./docker-volume-config/main ./src/cmd/main.go"
+  bin = "./docker-volume-config/device-control-mock"
+  cmd = "go build -o ./docker-volume-config/device-control-mock ./mock/device/main.go"
   delay = 1000
   exclude_dir = ["assets", "vendor", "testdata"]
   exclude_file = []
   exclude_regex = ["_test.go"]
   exclude_unchanged = true
   follow_symlink = false
-  full_bin = "APP_ENV=dev APP_USER=air ./docker-volume-config/main"
+  full_bin = "APP_ENV=dev APP_USER=air ./docker-volume-config/device-control-mock "
   include_dir = []
   include_ext = ["go", "tpl", "tmpl", "html"]
   include_file = []
   kill_delay = "0s"
-  log = "./doker-volume-config/air-build-errors.log"
+  log = "./docker-volume-config/device-mock-air-build-errors.log"
   poll = false
   poll_interval = 0
   post_cmd = []

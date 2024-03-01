@@ -1,11 +1,33 @@
 version: '3.8'
+
+# NOTE :Extension field used in order to 
+# avoid volume name duplication
+# https://docs.docker.com/compose/compose-file/compose-file-v3/#extension-fields
+x-orio-root:
+  &orio-root
+  type: bind
+  source: ./
+  target: /app
+
 services:
-  orio-telegram-adapter-local:
+  orio-telegram-adapter:
     # TODO: investigate how to start container without it when using podman as container engine
     privileged: true
+    ports:
+      - "59090:23333"
     build:
       dockerfile: Dockerfile.dev
       context: .
-    volumes:
-      - ./:/app
     env_file: ./docker-compose.env
+    volumes:
+      - *orio-root
+
+        #orio-mock-device:
+        #  # TODO: investigate how to start container without it when using podman as container engine
+        #  privileged: true
+        #  build:
+        #    dockerfile: mock/device/Dockerfile
+        #    context: .
+        #  volumes:
+        #    - *orio-root
+        #  env_file: ./docker-compose.env

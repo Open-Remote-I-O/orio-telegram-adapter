@@ -63,3 +63,4 @@
 **/docker-volume-config
 **/docker-compose.env.local
 fly.toml
+**/mock

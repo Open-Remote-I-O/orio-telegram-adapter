@@ -10,8 +10,6 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// Send any text message to the bot after the bot has been started
-
 func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 
@@ -19,6 +17,19 @@ func main() {
 
 	logger.Debug().
 		Msg("logger was configured and instantiated successfully")
+
+	deviceControlAdapter, err := adapters.NewDeviceRemoteControlAdapter(&logger)
+	if err != nil {
+		fmt.Println(err)
+		panic(err)
+	}
+
+	deviceRemoteController := services.NewDeviceControlService(&deviceControlAdapter)
+
+	deviceRemoteController.StartServer(context.Background())
+
+	logger.Debug().
+		Msg("Device remove control service configured and instantiated successfully")
 
 	remoteControlAdapter, err := adapters.NewTelegramRemoteControlAdapter(&logger)
 	if err != nil {
@@ -32,9 +43,10 @@ func main() {
 
 	logger.Debug().
 		Msg("Remote control service configured and instantiated successfully")
- 
-	remoteControlService.StartServer(context.TODO())
+
+	remoteControlService.StartServer(context.Background())
 
 	logger.Debug().
 		Msg("remote control service started")
+
 }

@@ -4,6 +4,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os/exec"
 
@@ -16,55 +17,80 @@ import (
 
 // A build step that requires additional params, or platform specific steps for example
 func Build() error {
-	mg.Deps(Install_deps)
+	mg.Deps(Deps)
 	fmt.Println("Building...")
 	cmd := exec.Command(
 		"RUN CGO_ENABLED=0",
-		"GOOS=linux", 
+		"GOOS=linux",
 		"GOARCH=amd64",
 		"go",
 		"build",
+		"./src/cmd/main.go",
 		"-o",
 		"./orio-telegram-adapter",
-		"./src/cmd/main.go",
 	)
 	if err := cmd.Run(); err != nil {
-		fmt.Printf("%e",err)
+		fmt.Printf("%e", err)
 	}
 	return nil
-
 }
 
 // Manage your deps, or running package managers.
-func Install_deps() error {
+func Deps() error {
 	fmt.Println("Installing Deps...")
 	cmd := exec.Command("go", "mod", "download")
 	if err := cmd.Run(); err != nil {
-		fmt.Printf("%e",err)
+		fmt.Printf("%e", err)
 	}
 	return nil
+}
+
+const podmanComposeCommand = "podman-compose"
+const dockerComposeCommand = "docker compose"
+
+func launchDockerOrPodman() (string, error) {
+	podmanInspection := exec.Command(podmanComposeCommand, "--version")
+	if err := podmanInspection.Run(); err == nil {
+		return podmanComposeCommand, nil
+	}
+
+	dockerInspection := exec.Command(dockerComposeCommand, "--version")
+
+	if err := dockerInspection.Run(); err == nil {
+		return dockerComposeCommand, nil
+	}
+
+	return "", errors.New("missing command to launch local env, please consult manual for local env required tools")
 }
 
 // Launch local docker compose with telegram bot and sqlite database
 func Dev() error {
 	fmt.Println("Preparing to launch local env")
+
+	command, err := launchDockerOrPodman()
+	if err != nil {
+		return err
+	}
+
 	fmt.Println(
 		"launching command",
-		"podman-compose",
+		command,
 		"up",
 		"-d",
 		"--build",
 		"--remove-orphans",
+		"--force-recreate",
 	)
 	cmd := exec.Command(
-		"podman-compose",
+		command,
 		"up",
 		"-d",
 		"--build",
 		"--remove-orphans",
+		"--force-recreate",
 	)
 	if err := cmd.Run(); err != nil {
-		fmt.Printf("%e",err)
+		return err
 	}
 	return nil
 }
@@ -83,7 +109,7 @@ func Deploy_fly() error {
 		"--ha=false",
 	)
 	if err := cmd.Run(); err != nil {
-		fmt.Printf("%e",err)
+		fmt.Printf("%e", err)
 	}
 	return nil
 }
