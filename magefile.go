@@ -45,18 +45,22 @@ func Deps() error {
 	return nil
 }
 
-const podmanComposeCommand = "podman-compose"
-const dockerComposeCommand = "docker compose"
+const (
+	podmanComposeCommand = "podman-compose"
+	dockerComposeCommand = "docker compose"
+)
+
+func hasBinary(binaryName string) bool {
+	_, err := exec.LookPath(binaryName)
+	return err == nil
+}
 
 func launchDockerOrPodman() (string, error) {
-	podmanInspection := exec.Command(podmanComposeCommand, "--version")
-	if err := podmanInspection.Run(); err == nil {
+	if hasBinary(podmanComposeCommand) {
 		return podmanComposeCommand, nil
 	}
 
-	dockerInspection := exec.Command(dockerComposeCommand, "--version")
-
-	if err := dockerInspection.Run(); err == nil {
+	if hasBinary(dockerComposeCommand) {
 		return dockerComposeCommand, nil
 	}
 
