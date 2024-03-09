@@ -1,4 +1,4 @@
-FROM docker.io/library/golang:1.22.0-bullseye as builder
+FROM docker.io/library/golang:1.22.1-bullseye as builder
 
 RUN go install github.com/Open-Remote-I-O/cert_gen_cli@v0.1.4
 
