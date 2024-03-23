@@ -13,21 +13,34 @@ services:
   orio-telegram-adapter:
     # TODO: investigate how to start container without it when using podman as container engine
     privileged: true
+    environment:
+        DEVICE_CONTROL_PORT: ${DEVICE_CONTROL_PORT}
+        LOCAL_DEVICE_CONTROL_PORT: ${LOCAL_DEVICE_CONTROL_PORT}
     ports:
-      - "59090:23333"
+      - "${DEVICE_CONTROL_PORT}:${LOCAL_DEVICE_CONTROL_PORT}/tcp"
+    expose:
+        - 55055
     build:
       dockerfile: Dockerfile.dev
       context: .
-    env_file: ./docker-compose.env
     volumes:
       - *orio-root
+    network:
+      - podman
 
-        #orio-mock-device:
-        #  # TODO: investigate how to start container without it when using podman as container engine
-        #  privileged: true
-        #  build:
-        #    dockerfile: mock/device/Dockerfile
-        #    context: .
-        #  volumes:
-        #    - *orio-root
-        #  env_file: ./docker-compose.env
+  orio-mock-device:
+    # TODO: investigate how to start container without it when using podman as container engine
+    privileged: true
+    restart: on-failure
+    environment:
+        DEVICE_CONTROL_PORT: ${DEVICE_CONTROL_PORT}
+        SERVER_ADDR_NAME: ${SERVER_ADDR_NAME}
+    build:
+      dockerfile: mock/device/Dockerfile
+      context: .
+    volumes:
+      - *orio-root
+    links: 
+      - orio-telegram-adapter
+    network:
+      - podman

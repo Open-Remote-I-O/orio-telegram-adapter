@@ -3,9 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+
 	"orio-telegram-adapter/src/internal/adapters"
 	"orio-telegram-adapter/src/internal/services"
-	"os"
 
 	"github.com/rs/zerolog"
 )
@@ -24,7 +25,7 @@ func main() {
 		panic(err)
 	}
 
-	deviceRemoteController := services.NewDeviceControlService(&deviceControlAdapter)
+	deviceRemoteController := services.NewDeviceControlService(deviceControlAdapter)
 
 	deviceRemoteController.StartServer(context.Background())
 
@@ -48,5 +49,4 @@ func main() {
 
 	logger.Debug().
 		Msg("remote control service started")
-
 }

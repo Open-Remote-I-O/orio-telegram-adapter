@@ -79,6 +79,8 @@ func Dev() error {
 	fmt.Println(
 		"launching command",
 		command,
+		"--env-file",
+		"./docker-compose.env",
 		"up",
 		"-d",
 		"--build",
@@ -87,6 +89,8 @@ func Dev() error {
 	)
 	cmd := exec.Command(
 		command,
+		"--env-file",
+		"./docker-compose.env",
 		"up",
 		"-d",
 		"--build",

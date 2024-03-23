@@ -5,11 +5,15 @@ import (
 	"crypto/x509"
 	"fmt"
 	"log"
+	"net"
 	"os"
 )
 
-const certificatesPath = "/etc/ssl/certs/"
-const privateKeyPath = "/etc/ssl/private/"
+// TODO: populate certs path during build step
+const (
+	certificatesPath = "/etc/ssl/certs/"
+	privateKeyPath   = "/etc/ssl/private/"
+)
 
 func main() {
 	serverAddr, ok := os.LookupEnv("SERVER_ADDR_NAME")
@@ -17,13 +21,16 @@ func main() {
 		panic("env not present")
 	}
 
-	serverPort, ok := os.LookupEnv("SERVER_PORT")
+	deviceControlPort, ok := os.LookupEnv("DEVICE_CONTROL_PORT")
 	if !ok {
 		panic("env not present")
 	}
 
 	// Load client certificate and key
-	mockClientCert, err := tls.LoadX509KeyPair(certificatesPath+"mock-device.crt", privateKeyPath+"mock-device.key")
+	mockClientCert, err := tls.LoadX509KeyPair(
+		certificatesPath+"mock-device.crt",
+		privateKeyPath+"mock-device.key",
+	)
 	if err != nil {
 		log.Fatal("Failed to load client certificate/key:", err)
 	}
@@ -33,27 +40,35 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to read CA certificate:", err)
 	}
+
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(caCert)
 
 	// Configure TLS client
 	tlsConf := &tls.Config{
-		Certificates:       []tls.Certificate{mockClientCert},
-		RootCAs:            caCertPool,
-		InsecureSkipVerify: false,
+		Certificates: []tls.Certificate{mockClientCert},
+		RootCAs:      caCertPool,
+		ClientAuth:   tls.RequireAndVerifyClientCert,
+		// FIXME: improve certificate creation in order to avoid using insecure mode
+		InsecureSkipVerify: true,
+		CurvePreferences:   []tls.CurveID{tls.CurveP256},
+		ServerName:         "orio-server",
 	}
 
-	//TODO: first step is to test if the tls handshake works with generated credentials
-	conn, err := tls.Dial(serverAddr, serverPort, tlsConf)
+	conn, err := tls.Dial(
+		"tcp",
+		net.JoinHostPort(serverAddr, deviceControlPort),
+		tlsConf,
+	)
 	if err != nil {
-		fmt.Println("Something went wrong while connecting to server", err)
-		return
+		fmt.Println("Something went wrong while connecting to server:", err)
+		panic(err)
 	}
 	// TODO: for local test do not close but send a command each 30 sec?
 	defer conn.Close()
 
 	// Write and read data over the secure connection
-	data := "Hello from mTLS client!"
+	data := "Hello from mTLS client!\n"
 	_, err = conn.Write([]byte(data))
 	if err != nil {
 		log.Fatal("Failed to write data:", err)
