@@ -2,14 +2,16 @@ FROM docker.io/library/golang:1.22.1-alpine3.19
 
 WORKDIR /app
 
+COPY go.mod . 
+COPY go.sum .
+
+RUN go mod download 
+
 RUN go install github.com/Open-Remote-I-O/cert_gen_cli@32568dc
 
 # Add you're CA authority certificate in order to allow mTLS communication
 COPY ca.crt /etc/ssl/certs/orio-ca.crt
 COPY ca.key /etc/ssl/private/orio-ca.key
-
-COPY go.mod . 
-COPY go.sum .
 
 COPY local-cert-gen-conf.toml .
 
@@ -21,7 +23,6 @@ RUN cert_gen_cli genCaParentCert \
 	-k /etc/ssl/private/orio-ca.key \
 	--config-file-path ./local-cert-gen-conf.toml
 
-RUN go mod download 
 
 RUN go install github.com/cosmtrek/air@v1.51.0
 

@@ -1,4 +1,4 @@
 OrganizationName = "test"
 SubjectCommonName = "test"
-DnsNames = ["localhost","orio-server"]
+DnsNames = ["localhost","orio-server","orio-telegram-adapter"]
 IPAddresses = ["127.0.0.1"]

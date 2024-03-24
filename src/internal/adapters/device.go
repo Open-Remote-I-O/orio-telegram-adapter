@@ -19,6 +19,7 @@ type DeviceHandler struct {
 	server net.Listener
 }
 
+// TODO: populate certs path during build step
 const (
 	certificatesPath = "/etc/ssl/certs/"
 	privateKeyPath   = "/etc/ssl/private/"

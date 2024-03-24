@@ -9,7 +9,6 @@ import (
 	"os"
 )
 
-// TODO: populate certs path during build step
 const (
 	certificatesPath = "/etc/ssl/certs/"
 	privateKeyPath   = "/etc/ssl/private/"
@@ -46,13 +45,10 @@ func main() {
 
 	// Configure TLS client
 	tlsConf := &tls.Config{
-		Certificates: []tls.Certificate{mockClientCert},
-		RootCAs:      caCertPool,
-		ClientAuth:   tls.RequireAndVerifyClientCert,
-		// FIXME: improve certificate creation in order to avoid using insecure mode
-		InsecureSkipVerify: true,
-		CurvePreferences:   []tls.CurveID{tls.CurveP256},
-		ServerName:         "orio-server",
+		Certificates:     []tls.Certificate{mockClientCert},
+		RootCAs:          caCertPool,
+		ClientAuth:       tls.RequireAndVerifyClientCert,
+		CurvePreferences: []tls.CurveID{tls.CurveP256},
 	}
 
 	conn, err := tls.Dial(
