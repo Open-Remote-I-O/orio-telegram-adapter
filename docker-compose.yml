@@ -16,6 +16,7 @@ services:
     environment:
         DEVICE_CONTROL_PORT: ${DEVICE_CONTROL_PORT}
         LOCAL_DEVICE_CONTROL_PORT: ${LOCAL_DEVICE_CONTROL_PORT}
+        BOT_API_KEY: ${BOT_API_KEY}
     ports:
       - "${DEVICE_CONTROL_PORT}:${LOCAL_DEVICE_CONTROL_PORT}/tcp"
     expose:
