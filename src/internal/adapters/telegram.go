@@ -2,6 +2,7 @@ package adapters
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -22,7 +23,7 @@ func NewTelegramRemoteControlAdapter(
 ) (TelegramHandler, error) {
 	botApiKey, envIsPresent := os.LookupEnv("BOT_API_KEY")
 	if !envIsPresent {
-		fmt.Println("missing env variable")
+		return TelegramHandler{}, errors.New("BOT_API_KEY env was not provided")
 	}
 
 	b, err := bot.New(
@@ -33,7 +34,7 @@ func NewTelegramRemoteControlAdapter(
 	)
 	if err != nil {
 		fmt.Println(err)
-		panic(err)
+		return TelegramHandler{}, err
 	}
 
 	return TelegramHandler{
@@ -43,7 +44,7 @@ func NewTelegramRemoteControlAdapter(
 }
 
 func (th *TelegramHandler) StartServer(ctx context.Context) {
-	go th.server.Start(ctx)
+	th.server.Start(ctx)
 }
 
 func handler(ctx context.Context, b *bot.Bot, update *bot_model.Update) {

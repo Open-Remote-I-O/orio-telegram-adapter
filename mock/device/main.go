@@ -60,7 +60,6 @@ func main() {
 		fmt.Println("Something went wrong while connecting to server:", err)
 		panic(err)
 	}
-	// TODO: for local test do not close but send a command each 30 sec?
 	defer conn.Close()
 
 	// Write and read data over the secure connection

@@ -11,6 +11,8 @@ import (
 	"net"
 	"os"
 
+	"orio-telegram-adapter/src/internal/config"
+
 	"github.com/rs/zerolog"
 )
 
@@ -19,30 +21,25 @@ type DeviceHandler struct {
 	server net.Listener
 }
 
-// TODO: populate certs path during build step
-const (
-	certificatesPath = "/etc/ssl/certs/"
-	privateKeyPath   = "/etc/ssl/private/"
-)
-
 func NewDeviceRemoteControlAdapter(
 	logger *zerolog.Logger,
+	conf config.DeviceConfig,
 ) (*DeviceHandler, error) {
 	deviceControlPort, envIsPresent := os.LookupEnv("DEVICE_CONTROL_PORT")
 	if !envIsPresent {
-		fmt.Println("missing env variable")
+		logger.Warn().Msg("missing DEVICE_CONTROL_PORT env variable")
 		return nil, errors.New("missing DEVICE_CONTROL_PORT env variable")
 	}
 
 	// Load client certificate and key
-	orioCert, err := tls.LoadX509KeyPair(certificatesPath+"orio-server.crt", privateKeyPath+"orio-server.key")
+	orioCert, err := tls.LoadX509KeyPair(conf.Orio_tls_cert_path, conf.Orio_tls_key_path)
 	if err != nil {
 		logger.Error().AnErr("Failed to load client certificate/key:", err)
 		return nil, err
 	}
 
 	// Load CA certificate
-	caCert, err := os.ReadFile(certificatesPath + "orio-ca.crt")
+	caCert, err := os.ReadFile(conf.Orio_ca_cert_path)
 	if err != nil {
 		logger.Error().AnErr("Failed to read CA certificate:", err)
 	}
@@ -63,6 +60,7 @@ func NewDeviceRemoteControlAdapter(
 	)
 	if err != nil {
 		logger.Fatal().Err(err)
+		return nil, err
 	}
 
 	return &DeviceHandler{
@@ -75,8 +73,8 @@ func (dh *DeviceHandler) StartServer(ctx context.Context) {
 	for {
 		conn, err := dh.server.Accept()
 		if err != nil {
-			dh.logger.Err(err).Msg("something went wrong while starting device control server")
-			panic(err)
+			dh.logger.Err(err).Msg("something went wrong while starting device control server, closing connection")
+			conn.Close()
 		}
 		fmt.Println("handling connection from", conn.RemoteAddr())
 		handleClient(conn)
