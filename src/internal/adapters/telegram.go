@@ -2,6 +2,7 @@ package adapters
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -12,36 +13,34 @@ import (
 	bot_model "github.com/go-telegram/bot/models"
 )
 
-type TelegramHandler struct{
+type TelegramHandler struct {
 	logger *zerolog.Logger
-	server *bot.Bot 
+	server *bot.Bot
 }
 
 func NewTelegramRemoteControlAdapter(
 	logger *zerolog.Logger,
-) (TelegramHandler,error){
+) (TelegramHandler, error) {
 	botApiKey, envIsPresent := os.LookupEnv("BOT_API_KEY")
 	if !envIsPresent {
-		fmt.Println("missing env variable")
+		return TelegramHandler{}, errors.New("BOT_API_KEY env was not provided")
 	}
 
-
 	b, err := bot.New(
-		botApiKey, 
+		botApiKey,
 		[]bot.Option{
 			bot.WithDefaultHandler(handler),
 		}...,
 	)
 	if err != nil {
 		fmt.Println(err)
-		panic(err)
+		return TelegramHandler{}, err
 	}
-	
+
 	return TelegramHandler{
 		logger: logger,
 		server: b,
-
-	},nil
+	}, nil
 }
 
 func (th *TelegramHandler) StartServer(ctx context.Context) {
@@ -53,8 +52,7 @@ func handler(ctx context.Context, b *bot.Bot, update *bot_model.Update) {
 		ChatID: update.Message.Chat.ID,
 		Text:   update.Message.Text,
 	})
-	if err != nil{
+	if err != nil {
 		log.Error().Err(err).Msg("something went wrong while sending echo to client")
 	}
 }
-

@@ -1,4 +1,5 @@
 # Created by https://www.toptal.com/developers/gitignore/api/go,vim,linux
+
 # Edit at https://www.toptal.com/developers/gitignore?templates=go,vim,linux
 
 ### Go ###
@@ -11,6 +12,9 @@
 *.dll
 *.so
 *.dylib
+
+*.crt
+*.key
 
 # Test binary, built with `go test -c`
 *.test
@@ -61,3 +65,4 @@ tag
 
 docker-volume-config/
 docker-compose.env
+argfile.conf

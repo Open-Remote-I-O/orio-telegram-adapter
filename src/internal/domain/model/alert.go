@@ -1,5 +1,5 @@
 package model
 
-type DeviceAlert struct{
+type DeviceAlert struct {
 	PinNumber uint8
 }

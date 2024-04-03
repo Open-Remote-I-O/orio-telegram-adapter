@@ -2,15 +2,14 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"orio-telegram-adapter/src/internal/adapters"
-	"orio-telegram-adapter/src/internal/services"
 	"os"
+
+	"orio-telegram-adapter/src/internal/adapters"
+	"orio-telegram-adapter/src/internal/config"
+	"orio-telegram-adapter/src/internal/services"
 
 	"github.com/rs/zerolog"
 )
-
-// Send any text message to the bot after the bot has been started
 
 func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
@@ -20,10 +19,25 @@ func main() {
 	logger.Debug().
 		Msg("logger was configured and instantiated successfully")
 
+	remotedevicecontrollerconf := config.NewDeviceConfig()
+
+	deviceControlAdapter, err := adapters.NewDeviceRemoteControlAdapter(&logger, remotedevicecontrollerconf)
+	if err != nil {
+		logger.Err(err).Msg("unexpected error while initializing remote device control")
+		return
+	}
+
+	deviceRemoteController := services.NewDeviceControlService(deviceControlAdapter)
+
+	go deviceRemoteController.StartServer(context.Background())
+
+	logger.Debug().
+		Msg("Device remove control service configured and instantiated successfully")
+
 	remoteControlAdapter, err := adapters.NewTelegramRemoteControlAdapter(&logger)
 	if err != nil {
-		fmt.Println(err)
-		panic(err)
+		logger.Err(err).Msg("unexpected error while initializing telegram connection")
+		return
 	}
 
 	remoteControlService := services.NewRemoteControlService(
@@ -32,8 +46,8 @@ func main() {
 
 	logger.Debug().
 		Msg("Remote control service configured and instantiated successfully")
- 
-	remoteControlService.StartServer(context.TODO())
+
+	remoteControlService.StartServer(context.Background())
 
 	logger.Debug().
 		Msg("remote control service started")

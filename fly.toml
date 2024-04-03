@@ -2,9 +2,19 @@ app = "orio-telegram-adapter"
 primary_region = "ams"
 
 [build]
-  dockerfile = "Dockerfile"
+  #dockerfile = "Dockerfile"
+  image = "registry.fly.io/orio-telegram-adapter:latest"
 
 [[vm]]
   cpu_kind = "shared"
   cpus = 1
   memory_mb = 256
+
+[services.concurrency]
+  hard_limit = 10
+  soft_limit = 7
+  type = "connections"
+
+[[services.ports]]
+  handlers = ["tls"]
+  port = 31090
