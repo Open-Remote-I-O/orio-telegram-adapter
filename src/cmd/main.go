@@ -32,7 +32,7 @@ func main() {
 	go deviceRemoteController.StartServer(context.Background())
 
 	logger.Debug().
-		Msg("Device remove control service configured and instantiated successfully")
+		Msg("Device remote control service configured and instantiated successfully")
 
 	remoteControlAdapter, err := adapters.NewTelegramRemoteControlAdapter(&logger)
 	if err != nil {
