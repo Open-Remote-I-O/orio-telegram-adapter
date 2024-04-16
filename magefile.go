@@ -81,6 +81,18 @@ func Deps() error {
 	return nil
 }
 
+func launchDockerOrPodman() (string, error) {
+	if hasBinary(podmanComposeCommand) {
+		return podmanComposeCommand, nil
+	}
+
+	if hasBinary(dockerComposeCommand) {
+		return dockerComposeCommand, nil
+	}
+
+	return "", errors.New("missing command to launch local env, please consult manual for local env required tools")
+}
+
 // Launch local docker compose with telegram bot and sqlite database
 func Dev() error {
 	fmt.Println("Preparing to launch local env")

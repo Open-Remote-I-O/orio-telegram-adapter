@@ -34,7 +34,6 @@ services:
     environment:
         DEVICE_CONTROL_PORT: ${DEVICE_CONTROL_PORT}
         SERVER_ADDR_NAME: ${SERVER_ADDR_NAME}
-        LOCAL_DEVICE_CONTROL_PORT: ${LOCAL_DEVICE_CONTROL_PORT}
     build:
       dockerfile: mock/device/Dockerfile
       context: .
