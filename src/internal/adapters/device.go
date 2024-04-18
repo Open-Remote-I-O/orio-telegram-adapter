@@ -25,7 +25,7 @@ func NewDeviceRemoteControlAdapter(
 	logger *zerolog.Logger,
 	conf config.DeviceConfig,
 ) (*DeviceHandler, error) {
-	deviceControlPort, envIsPresent := os.LookupEnv("DEVICE_CONTROL_PORT")
+	deviceControlPort, envIsPresent := os.LookupEnv("LOCAL_DEVICE_CONTROL_PORT")
 	if !envIsPresent {
 		logger.Warn().Msg("missing DEVICE_CONTROL_PORT env variable")
 		return nil, errors.New("missing DEVICE_CONTROL_PORT env variable")

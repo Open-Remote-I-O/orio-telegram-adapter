@@ -59,6 +59,18 @@ func Build() error {
 	return nil
 }
 
+func launchDockerOrPodman() (string, error) {
+	if hasBinary(podmanComposeCommand) {
+		return podmanComposeCommand, nil
+	}
+
+	if hasBinary(dockerComposeCommand) {
+		return dockerComposeCommand, nil
+	}
+
+	return "", errors.New("missing command to launch local env, please consult manual for local env required tools")
+}
+
 // Manage your deps, or running package managers.
 func Deps() error {
 	fmt.Println("Installing Deps...")

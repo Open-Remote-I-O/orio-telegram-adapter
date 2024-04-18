@@ -20,7 +20,7 @@ func main() {
 		panic("env not present")
 	}
 
-	deviceControlPort, ok := os.LookupEnv("DEVICE_CONTROL_PORT")
+	deviceControlPort, ok := os.LookupEnv("LOCAL_DEVICE_CONTROL_PORT")
 	if !ok {
 		panic("env not present")
 	}
