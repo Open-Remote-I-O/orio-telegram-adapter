@@ -1,4 +1,4 @@
-FROM docker.io/library/golang:1.22.1-alpine3.19
+FROM docker.io/library/golang:1.22.2-alpine3.19
 
 RUN go install github.com/Open-Remote-I-O/cert_gen_cli@32568dc
 
