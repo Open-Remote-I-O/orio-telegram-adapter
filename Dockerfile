@@ -4,7 +4,7 @@ ARG orioServerCertPath
 ARG orioServerKeyPath
 ARG orioCaCertPath
 
-RUN go install github.com/Open-Remote-I-O/cert_gen_cli@32568dc
+RUN go install github.com/Open-Remote-I-O/cert_gen_cli@v0.3.0
 
 WORKDIR /go/src
 
