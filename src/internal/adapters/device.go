@@ -70,14 +70,21 @@ func NewDeviceRemoteControlAdapter(
 }
 
 func (dh *DeviceHandler) StartServer(ctx context.Context) {
+	defer func() {
+		err := dh.server.Close()
+		if err != nil {
+			dh.logger.Err(err).Msg("failed to gracefully shut down device control service tcp server")
+		}
+	}()
+	dh.logger.Info().Msg("starting device control service")
 	for {
 		conn, err := dh.server.Accept()
 		if err != nil {
 			dh.logger.Err(err).Msg("something went wrong while starting device control server, closing connection")
 			conn.Close()
 		}
-		fmt.Println("handling connection from", conn.RemoteAddr())
-		handleClient(conn)
+		dh.logger.Debug().Msgf("handling connection from %s", conn.RemoteAddr())
+		go handleClient(conn)
 	}
 }
 
