@@ -3,7 +3,6 @@ package adapters
 import (
 	"context"
 	"errors"
-	"fmt"
 	"os"
 
 	"github.com/rs/zerolog"
@@ -20,10 +19,10 @@ type TelegramHandler struct {
 
 func NewTelegramRemoteControlAdapter(
 	logger *zerolog.Logger,
-) (TelegramHandler, error) {
+) (*TelegramHandler, error) {
 	botApiKey, envIsPresent := os.LookupEnv("BOT_API_KEY")
 	if !envIsPresent {
-		return TelegramHandler{}, errors.New("BOT_API_KEY env was not provided")
+		return nil, errors.New("BOT_API_KEY env was not provided")
 	}
 
 	b, err := bot.New(
@@ -33,17 +32,18 @@ func NewTelegramRemoteControlAdapter(
 		}...,
 	)
 	if err != nil {
-		fmt.Println(err)
-		return TelegramHandler{}, err
+		logger.Err(err).Msg("failed to initialize new telegram bot")
+		return nil, err
 	}
 
-	return TelegramHandler{
+	return &TelegramHandler{
 		logger: logger,
 		server: b,
 	}, nil
 }
 
 func (th *TelegramHandler) StartServer(ctx context.Context) {
+	th.logger.Info().Msg("starting remote device control service")
 	th.server.Start(ctx)
 }
 
@@ -53,6 +53,6 @@ func handler(ctx context.Context, b *bot.Bot, update *bot_model.Update) {
 		Text:   update.Message.Text,
 	})
 	if err != nil {
-		log.Error().Err(err).Msg("something went wrong while sending echo to client")
+		log.Error().Err(err).Msg("something went wrong while sending message to client")
 	}
 }

@@ -17,12 +17,12 @@ const (
 func main() {
 	serverAddr, ok := os.LookupEnv("SERVER_ADDR_NAME")
 	if !ok {
-		panic("env not present")
+		panic("SERVER_ADDR_NAME env not present")
 	}
 
 	deviceControlPort, ok := os.LookupEnv("LOCAL_DEVICE_CONTROL_PORT")
 	if !ok {
-		panic("env not present")
+		panic("LOCAL_DEVICE_CONTROL_PORT env not present")
 	}
 
 	// Load client certificate and key

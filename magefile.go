@@ -27,14 +27,11 @@ func hasBinary(binaryName string) bool {
 }
 
 func inputConsolePrompt(label string) (string, error) {
-	fmt.Print(label, "\n")
-
 	scanner := bufio.NewScanner(os.Stdin)
 	if scanned := scanner.Scan(); scanned {
 		return strings.TrimSpace(scanner.Text()), nil
 	}
 
-	fmt.Println("exiting with error?", scanner.Err())
 	return "", scanner.Err()
 }
 
@@ -55,6 +52,7 @@ func Build() error {
 	)
 	if err := cmd.Run(); err != nil {
 		fmt.Printf("%e", err)
+		return err
 	}
 	return nil
 }

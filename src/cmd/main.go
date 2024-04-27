@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"os"
+	"sync"
 
 	"orio-telegram-adapter/src/internal/adapters"
 	"orio-telegram-adapter/src/internal/config"
@@ -27,9 +28,7 @@ func main() {
 		return
 	}
 
-	deviceRemoteController := services.NewDeviceControlService(deviceControlAdapter)
-
-	go deviceRemoteController.StartServer(context.Background())
+	deviceRemoteService := services.NewDeviceControlService(deviceControlAdapter)
 
 	logger.Debug().
 		Msg("Device remote control service configured and instantiated successfully")
@@ -41,14 +40,19 @@ func main() {
 	}
 
 	remoteControlService := services.NewRemoteControlService(
-		&remoteControlAdapter,
+		remoteControlAdapter,
 	)
 
 	logger.Debug().
-		Msg("Remote control service configured and instantiated successfully")
+		Msg("Device remote control service configured and instantiated successfully")
 
-	remoteControlService.StartServer(context.Background())
+	wg := &sync.WaitGroup{}
 
-	logger.Debug().
-		Msg("remote control service started")
+	wg.Add(1)
+	go deviceRemoteService.StartServer(context.Background())
+
+	wg.Add(1)
+	go remoteControlService.StartServer(context.Background())
+
+	wg.Wait()
 }
