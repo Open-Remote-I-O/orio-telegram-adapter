@@ -11,7 +11,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/magefile/mage/mg"
+	"github.com/magefile/mage/sh"
 )
 
 const (
@@ -35,28 +35,6 @@ func inputConsolePrompt(label string) (string, error) {
 	return "", scanner.Err()
 }
 
-// A build step that requires additional params, or platform specific steps for example
-func Build() error {
-	mg.Deps(Deps)
-	fmt.Println("Building...")
-	cmd := exec.Command(
-		"RUN CGO_ENABLED=0",
-		"GOOS=linux",
-		"GOARCH=amd64",
-		`-ldflags="-s -w`,
-		"go",
-		"build",
-		"./src/cmd/main.go",
-		"-o",
-		"./orio-telegram-adapter",
-	)
-	if err := cmd.Run(); err != nil {
-		fmt.Printf("%e", err)
-		return err
-	}
-	return nil
-}
-
 func launchDockerOrPodman() (string, error) {
 	if hasBinary(podmanComposeCommand) {
 		return podmanComposeCommand, nil
@@ -70,14 +48,14 @@ func launchDockerOrPodman() (string, error) {
 }
 
 // Manage your deps, or running package managers.
-func Deps() error {
-	fmt.Println("Installing Deps...")
-	cmd := exec.Command("go", "mod", "download")
-	if err := cmd.Run(); err != nil {
-		fmt.Printf("%e", err)
-	}
-	return nil
-}
+//func Deps() error {
+//	fmt.Println("Installing Deps...")
+//	cmd := exec.Command("go", "mod", "download")
+//	if err := cmd.Run(); err != nil {
+//		fmt.Printf("%e", err)
+//	}
+//	return nil
+//}
 
 // Launch local docker compose with telegram bot and sqlite database
 func Dev() error {
@@ -99,7 +77,8 @@ func Dev() error {
 		"--remove-orphans",
 		"--force-recreate",
 	)
-	cmd := exec.Command(
+
+	if err := sh.RunV(
 		command,
 		"--env-file",
 		"./docker-compose.env",
@@ -108,25 +87,21 @@ func Dev() error {
 		"--build",
 		"--remove-orphans",
 		"--force-recreate",
-	)
-	if err := cmd.Run(); err != nil {
+	); err != nil {
 		return err
 	}
 	return nil
 }
 
 func dockerLoginFlyRegistry() error {
-	fmt.Println("")
-	dockerAuthCmd := exec.Command(
+	err := sh.RunV(
 		"flyctl",
 		"auth",
 		"docker",
 	)
-	out, err := dockerAuthCmd.Output()
 	if err != nil {
 		return err
 	}
-	fmt.Println(string(out))
 	return nil
 }
 
@@ -137,12 +112,12 @@ func podmanLoginFlyRegistry() error {
 		"auth",
 		"token",
 	)
-	authTokenCmd := exec.Command(
+
+	rawAuthToken, err := sh.Output(
 		"flyctl",
 		"auth",
 		"token",
 	)
-	rawAuthToken, err := authTokenCmd.Output()
 	if err != nil {
 		return err
 	}
@@ -156,7 +131,7 @@ func podmanLoginFlyRegistry() error {
 	authToken := strings.TrimSuffix(string(rawAuthToken), "\n")
 
 	fmt.Println("Executing registry login operation")
-	cmd := exec.Command(
+	if err := sh.RunV(
 		"podman",
 		"login",
 		"-u",
@@ -164,8 +139,7 @@ func podmanLoginFlyRegistry() error {
 		"-p",
 		authToken,
 		registryUrl,
-	)
-	if err := cmd.Run(); err != nil {
+	); err != nil {
 		fmt.Printf("Something went wring while completing auth step on %s registry url \n", registryUrl)
 		fmt.Printf("%e \n", err.Error())
 	}
@@ -180,7 +154,7 @@ func LoginImageRegistry() error {
 }
 
 func podmanBuildContainerImage(imageTag string) error {
-	cmd := exec.Command(
+	if err := sh.RunV(
 		"podman",
 		"build",
 		"-t",
@@ -188,31 +162,29 @@ func podmanBuildContainerImage(imageTag string) error {
 		"--build-arg-file",
 		"./argfile.conf",
 		".",
-	)
-	out, err := cmd.Output()
-	fmt.Println(string(out))
-	if err != nil {
+	); err != nil {
+		fmt.Printf("%e", err)
 		return err
 	}
 	return nil
 }
 
 func podmanPushContainerImage(imageTag string) error {
-	cmd := exec.Command(
+	if err := sh.RunV(
 		"podman",
 		"push",
 		"--format",
 		"v2s2",
 		fmt.Sprintf("localhost/%s", imageTag),
 		fmt.Sprintf("docker://registry.fly.io/%s:latest", imageTag),
-	)
-	if err := cmd.Run(); err != nil {
-		fmt.Printf("error occured during image push to registry %e", err)
+	); err != nil {
+		fmt.Printf("%e", err)
 		return err
 	}
 	return nil
 }
 
+// Build image locally and pushes into fly.io image registry
 func BuildPushImageToRegistry() error {
 	if !hasBinary(podmanCommand) {
 		return fmt.Errorf("Currently docker build and push step compatibility is not available")
@@ -234,7 +206,7 @@ func BuildPushImageToRegistry() error {
 	return nil
 }
 
-// Deploy to your fly io account, note that you must have flyctl configured for this step
+// Deploy to your fly.io account from fly.io registry, note that you must have flyctl configured for this step
 func DeployImageFromRegistry() error {
 	fmt.Println("Preparing to deploy")
 	rawContainerImageTag, err := inputConsolePrompt("provide container image tag:")
@@ -249,15 +221,15 @@ func DeployImageFromRegistry() error {
 		fmt.Sprintf("registry.fly.io/%s:latest", containerImageTag),
 		"--ha=false",
 	)
-	cmd := exec.Command(
+	if err := sh.RunV(
 		"flyctl",
 		"deploy",
 		"-i",
 		fmt.Sprintf("registry.fly.io/%s:latest", containerImageTag),
 		"--ha=false",
-	)
-	if err := cmd.Run(); err != nil {
+	); err != nil {
 		fmt.Printf("%e", err)
+		return err
 	}
 	return nil
 }
