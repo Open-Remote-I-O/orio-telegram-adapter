@@ -12,8 +12,7 @@
 
 ## Tools needed
 In order to properly run and setup the local development env you should make sure to have:\
-    - [go](https://go.dev/doc/install) >= 1.22.0
-    - [mage](https://magefile.org/)
-    - [podman](https://podman.io/docs/installation) or [docker](https://docs.docker.com/engine/install/)
-    - [flyctl](https://fly.io/docs/flyctl/)
-
+    - [go](https://go.dev/doc/install) >= 1.22.0\
+    - [GNU Make](https://www.gnu.org/software/make/)\
+    - [podman](https://podman.io/docs/installation) or [docker](https://docs.docker.com/engine/install/)\
+    - [flyctl](https://fly.io/docs/flyctl/)\
