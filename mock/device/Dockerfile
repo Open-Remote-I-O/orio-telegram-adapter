@@ -1,6 +1,6 @@
 FROM docker.io/library/golang:1.22.2-alpine3.19
 
-RUN go install github.com/Open-Remote-I-O/cert_gen_cli@v0.3.0
+RUN go install github.com/Open-Remote-I-O/cert_gen_cli@v0.3.1
 
 RUN go install github.com/cosmtrek/air@v1.51.0
 
