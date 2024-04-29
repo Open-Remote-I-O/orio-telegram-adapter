@@ -47,16 +47,6 @@ func launchDockerOrPodman() (string, error) {
 	return "", errors.New("missing command to launch local env, please consult manual for local env required tools")
 }
 
-// Manage your deps, or running package managers.
-//func Deps() error {
-//	fmt.Println("Installing Deps...")
-//	cmd := exec.Command("go", "mod", "download")
-//	if err := cmd.Run(); err != nil {
-//		fmt.Printf("%e", err)
-//	}
-//	return nil
-//}
-
 // Launch local docker compose with telegram bot and sqlite database
 func Dev() error {
 	fmt.Println("Preparing to launch local env")
