@@ -27,6 +27,7 @@ func hasBinary(binaryName string) bool {
 }
 
 func inputConsolePrompt(label string) (string, error) {
+	fmt.Println(label)
 	scanner := bufio.NewScanner(os.Stdin)
 	if scanned := scanner.Scan(); scanned {
 		return strings.TrimSpace(scanner.Text()), nil
@@ -103,6 +104,7 @@ func podmanLoginFlyRegistry() error {
 		"token",
 	)
 
+	// TODO The 'fly auth token' command is deprecated. Use 'fly tokens create' instead.
 	rawAuthToken, err := sh.Output(
 		"flyctl",
 		"auth",
@@ -136,6 +138,7 @@ func podmanLoginFlyRegistry() error {
 	return nil
 }
 
+// Login to fly image registry
 func LoginImageRegistry() error {
 	if hasBinary(podmanCommand) {
 		return podmanLoginFlyRegistry()
@@ -179,6 +182,7 @@ func BuildPushImageToRegistry() error {
 	if !hasBinary(podmanCommand) {
 		return fmt.Errorf("Currently docker build and push step compatibility is not available")
 	}
+	// TODO default as latest
 	rawContainerImageTag, err := inputConsolePrompt("provide container image tag:")
 	if err != nil {
 		return err

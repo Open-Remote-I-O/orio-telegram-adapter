@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"os"
-	"sync"
+	"os/signal"
 
 	"orio-telegram-adapter/src/internal/adapters"
 	"orio-telegram-adapter/src/internal/config"
@@ -14,8 +14,9 @@ import (
 
 func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 
-	logger := zerolog.New(os.Stderr).With().Timestamp().Logger()
+	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
 
 	logger.Debug().
 		Msg("logger was configured and instantiated successfully")
@@ -31,28 +32,54 @@ func main() {
 	deviceRemoteService := services.NewDeviceControlService(deviceControlAdapter)
 
 	logger.Debug().
-		Msg("Device remote control service configured and instantiated successfully")
+		Msg("Device remote service configured correctly")
 
-	remoteControlAdapter, err := adapters.NewTelegramRemoteControlAdapter(&logger)
-	if err != nil {
-		logger.Err(err).Msg("unexpected error while initializing telegram connection")
-		return
-	}
+	// remoteControlAdapter, err := adapters.NewTelegramRemoteControlAdapter(&logger)
+	// if err != nil {
+	// 	logger.Err(err).Msg("unexpected error while initializing telegram connection")
+	// 	return
+	// }
 
-	remoteControlService := services.NewRemoteControlService(
-		remoteControlAdapter,
-	)
+	// remoteControlService := services.NewRemoteControlService(
+	// 	remoteControlAdapter,
+	// )
 
-	logger.Debug().
-		Msg("Device remote control service configured and instantiated successfully")
+	// logger.Debug().
+	// 	Msg("Remove control server configured correctly")
 
-	wg := &sync.WaitGroup{}
+	go deviceRemoteService.Start(ctx)
 
-	wg.Add(1)
-	go deviceRemoteService.StartServer(context.Background())
+	// go remoteControlService.StartServer(ctx)
 
-	wg.Add(1)
-	go remoteControlService.StartServer(context.Background())
+	// Listen for the interrupt signal.
+	<-ctx.Done()
 
-	wg.Wait()
+	// Restore default behavior on the interrupt signal and notify user of shutdown.
+	stop()
+
+	logger.Fatal().Msg("Interrupting")
+
+	os.Exit(0)
+	// log.Println("shutting down gracefully, press Ctrl+C again to force")
+
+	// // Perform application shutdown with a maximum timeout of 5 seconds.
+	// timeoutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	// defer cancel()
+
+	// go func() {
+	// 	if err := server.Shutdown(timeoutCtx); err != nil {
+	// 		logger.Fatal().Msg(err)
+	// 	}
+	// }()
+
+	// select {
+	// case <-timeoutCtx.Done():
+	// 	if timeoutCtx.Err() == context.DeadlineExceeded {
+	// 		log.Fatalln("timeout exceeded, forcing shutdown")
+	// 	}
+
+	// 	os.Exit(0)
+	// }
+
+	// stop()
 }

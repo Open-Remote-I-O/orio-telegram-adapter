@@ -18,6 +18,16 @@ func NewDeviceControlService(
 	}
 }
 
-func (s *DeviceControlService) StartServer(ctx context.Context) {
-	s.svc.StartServer(ctx)
+func (s *DeviceControlService) Start(ctx context.Context) {
+	err := s.svc.Start(ctx)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (s *DeviceControlService) Stop(ctx context.Context) {
+	err := s.svc.Stop(ctx)
+	if err != nil {
+		panic(err)
+	}
 }

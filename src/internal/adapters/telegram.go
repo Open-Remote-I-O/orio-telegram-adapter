@@ -47,6 +47,14 @@ func (th *TelegramHandler) StartServer(ctx context.Context) {
 	th.server.Start(ctx)
 }
 
+func (th *TelegramHandler) Start(ctx context.Context) error {
+	panic("Not implemented")
+}
+
+func (th *TelegramHandler) Stop(ctx context.Context) error {
+	panic("Not implemented")
+}
+
 func handler(ctx context.Context, b *bot.Bot, update *bot_model.Update) {
 	_, err := b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: update.Message.Chat.ID,

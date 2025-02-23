@@ -4,10 +4,8 @@ import (
 	"context"
 )
 
-type DeviceControlService interface {
-	StartServer(ctx context.Context)
-}
-
 type RemoteControlService interface {
 	StartServer(ctx context.Context)
+	Start(ctx context.Context) error
+	Stop(ctx context.Context) error
 }

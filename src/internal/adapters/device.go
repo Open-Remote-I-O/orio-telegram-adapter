@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"net"
 	"os"
+	"sync"
 
 	"orio-telegram-adapter/src/internal/config"
 
@@ -19,6 +20,7 @@ import (
 type DeviceHandler struct {
 	logger *zerolog.Logger
 	server net.Listener
+	wg     sync.WaitGroup
 }
 
 func NewDeviceRemoteControlAdapter(
@@ -54,8 +56,8 @@ func NewDeviceRemoteControlAdapter(
 	}
 
 	listen, err := tls.Listen(
-		"tcp",
-		net.JoinHostPort("0.0.0.0", deviceControlPort),
+		"tcp6",
+		net.JoinHostPort("::1", deviceControlPort),
 		tlsConf,
 	)
 	if err != nil {
@@ -66,10 +68,16 @@ func NewDeviceRemoteControlAdapter(
 	return &DeviceHandler{
 		logger: logger,
 		server: listen,
+		wg:     sync.WaitGroup{},
 	}, nil
 }
 
-func (dh *DeviceHandler) StartServer(ctx context.Context) {
+func (dh *DeviceHandler) Stop(ctx context.Context) error {
+	dh.wg.Wait()
+	return nil
+}
+
+func (dh *DeviceHandler) Start(ctx context.Context) error {
 	defer func() {
 		err := dh.server.Close()
 		if err != nil {
@@ -84,7 +92,11 @@ func (dh *DeviceHandler) StartServer(ctx context.Context) {
 			conn.Close()
 		}
 		dh.logger.Debug().Msgf("handling connection from %s", conn.RemoteAddr())
-		go handleClient(conn)
+		dh.wg.Add(1)
+		go func() {
+			handleClient(conn)
+			dh.wg.Done()
+		}()
 	}
 }
 

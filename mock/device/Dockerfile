@@ -1,8 +1,6 @@
-FROM docker.io/library/golang:1.22.2-alpine3.19
+FROM docker.io/library/golang:1.24.0-alpine3.21
 
 RUN go install github.com/Open-Remote-I-O/cert_gen_cli@v0.3.1
-
-RUN go install github.com/cosmtrek/air@v1.51.0
 
 WORKDIR /app
 
@@ -25,4 +23,4 @@ RUN cert_gen_cli genCaParentCert \
 	-k /etc/ssl/private/orio-ca.key \
 	--config-file-path ./local-cert-gen-conf.toml
 
-CMD ["air", "-c", "./mock/device/device-mock.air.toml"]
+CMD ["go","tool","air", "-c", "./mock/device/device-mock.air.toml"]

@@ -23,6 +23,4 @@ RUN cert_gen_cli genCaParentCert \
 	-k /etc/ssl/private/orio-ca.key \
 	--config-file-path ./local-cert-gen-conf.toml
 
-RUN go install github.com/cosmtrek/air@v1.51.0
-
-CMD ["air", "-c", ".air.toml"]
+CMD ["go","tool","air", "-c", ".air.toml"]

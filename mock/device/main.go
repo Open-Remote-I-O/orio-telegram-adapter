@@ -52,7 +52,7 @@ func main() {
 	}
 
 	conn, err := tls.Dial(
-		"tcp",
+		"tcp6",
 		net.JoinHostPort(serverAddr, deviceControlPort),
 		tlsConf,
 	)
