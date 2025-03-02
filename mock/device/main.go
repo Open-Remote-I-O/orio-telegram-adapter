@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"orio-telegram-adapter/internal/protocol"
 	"os"
+	"time"
 )
 
 const (
@@ -62,18 +64,27 @@ func main() {
 	}
 	defer conn.Close()
 
-	// Write and read data over the secure connection
-	data := "Hello from mTLS client!\n"
-	_, err = conn.Write([]byte(data))
-	if err != nil {
-		log.Fatal("Failed to write data:", err)
-	}
+	t := time.NewTicker(10 * time.Second)
+	defer t.Stop()
+	for {
+		select {
+		case <-t.C:
+			var rawPayload protocol.OrioHeader
+			rawPayload.DeviceID = 6969
+			rawPayload.Version = 0
+			rawPayload.PayloadLen = 0
+			payload, err := rawPayload.MarshalBinary()
+			if err != nil {
+				log.Printf("client write marshal header error: %s", err)
+				continue
+			}
 
-	buf := make([]byte, 1024)
-	n, err := conn.Read(buf)
-	if err != nil {
-		log.Fatal("Failed to read data:", err)
+			_, err = conn.Write(payload)
+			if err != nil {
+				log.Printf("client socker write errors: %s", err)
+				continue
+			}
+			log.Printf("client: sent: %#v", payload)
+		}
 	}
-
-	fmt.Println("Server response:", string(buf[:n]))
 }

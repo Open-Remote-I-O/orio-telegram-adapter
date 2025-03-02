@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 
-	"orio-telegram-adapter/src/internal/domain/ports"
+	"orio-telegram-adapter/internal/domain/ports"
 )
 
 type DeviceControlService struct {

@@ -26,6 +26,8 @@ services:
       context: .
     volumes:
       - *orio-root
+    network:
+      - ip6net
 
   orio-mock-device:
     # TODO: investigate how to start container without it when using podman as container engine
@@ -41,3 +43,12 @@ services:
       - *orio-root
     links: 
       - orio-telegram-adapter
+    network:
+      - ip6net
+
+networks:
+  ip6net:
+    enable_ipv6: true
+    ipam:
+      config:
+        - subnet: 2001:db8::/64

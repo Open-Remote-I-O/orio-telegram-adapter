@@ -1,0 +1,7 @@
+package adapters
+
+type clients struct {
+}
+
+type deviceConnection struct {
+}

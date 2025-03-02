@@ -5,9 +5,9 @@ import (
 	"os"
 	"os/signal"
 
-	"orio-telegram-adapter/src/internal/adapters"
-	"orio-telegram-adapter/src/internal/config"
-	"orio-telegram-adapter/src/internal/services"
+	"orio-telegram-adapter/internal/adapters"
+	"orio-telegram-adapter/internal/config"
+	"orio-telegram-adapter/internal/services"
 
 	"github.com/rs/zerolog"
 )
