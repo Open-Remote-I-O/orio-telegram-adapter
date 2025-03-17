@@ -1,5 +1,3 @@
-version: '3.8'
-
 # NOTE :Extension field used in order to 
 # avoid volume name duplication
 # https://docs.docker.com/compose/compose-file/compose-file-v3/#extension-fields
@@ -15,29 +13,42 @@ services:
     privileged: true
     environment:
         DEVICE_CONTROL_PORT: ${DEVICE_CONTROL_PORT}
-        LOCAL_DEVICE_CONTROL_PORT: ${LOCAL_DEVICE_CONTROL_PORT}
-        BOT_API_KEY: ${BOT_API_KEY}
+        DEVICE_CONTROL_PORT: ${DEVICE_CONTROL_PORT}
+        # BOT_API_KEY: ${BOT_API_KEY}
     ports:
-      - "${DEVICE_CONTROL_PORT}:${LOCAL_DEVICE_CONTROL_PORT}/tcp"
+      - "${LOCAL_DEVICE_CONTROL_PORT}:${DEVICE_CONTROL_PORT}/tcp" 
     expose:
-      - "${LOCAL_DEVICE_CONTROL_PORT}"
+      - "${DEVICE_CONTROL_PORT}"
     build:
       dockerfile: Dockerfile.dev
       context: .
+    cap_add:
+      NET_ADMIN
+      NET_RAW
     volumes:
       - *orio-root
+    network:
+      - net
 
   orio-mock-device:
     # TODO: investigate how to start container without it when using podman as container engine
     privileged: true
     restart: on-failure
     environment:
-        LOCAL_DEVICE_CONTROL_PORT: ${LOCAL_DEVICE_CONTROL_PORT}
+        DEVICE_CONTROL_PORT: ${DEVICE_CONTROL_PORT}
         SERVER_ADDR_NAME: ${SERVER_ADDR_NAME}
     build:
       dockerfile: mock/device/Dockerfile
       context: .
+    cap_add:
+      NET_ADMIN
+      NET_RAW
     volumes:
       - *orio-root
     links: 
       - orio-telegram-adapter
+    network:
+      - net
+
+networks:
+  net:

@@ -5,7 +5,6 @@ import (
 )
 
 type RemoteControlService interface {
-	StartServer(ctx context.Context)
-	Start(ctx context.Context) error
+	Start(ctx context.Context)
 	Stop(ctx context.Context) error
 }

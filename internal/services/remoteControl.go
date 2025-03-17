@@ -2,7 +2,7 @@ package services
 
 import (
 	"context"
-	"orio-telegram-adapter/src/internal/domain/ports"
+	"orio-telegram-adapter/internal/domain/ports"
 )
 
 type RemoteControlService struct {
@@ -18,5 +18,5 @@ func NewRemoteControlService(
 }
 
 func (s *RemoteControlService) StartServer(ctx context.Context) {
-	s.svc.StartServer(ctx)
+	s.svc.Start(ctx)
 }

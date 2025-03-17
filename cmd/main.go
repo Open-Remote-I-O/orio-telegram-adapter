@@ -5,9 +5,11 @@ import (
 	"os"
 	"os/signal"
 
-	"orio-telegram-adapter/src/internal/adapters"
-	"orio-telegram-adapter/src/internal/config"
-	"orio-telegram-adapter/src/internal/services"
+	deviceAdapter "orio-telegram-adapter/internal/adapters/device"
+	telegramAdapter "orio-telegram-adapter/internal/adapters/telegram"
+	"orio-telegram-adapter/internal/config"
+	"orio-telegram-adapter/internal/domain"
+	"orio-telegram-adapter/internal/services"
 
 	"github.com/rs/zerolog"
 )
@@ -23,7 +25,12 @@ func main() {
 
 	remotedevicecontrollerconf := config.NewDeviceConfig()
 
-	deviceControlAdapter, err := adapters.NewDeviceRemoteControlAdapter(&logger, remotedevicecontrollerconf)
+	msgBus := domain.MessageBus{
+		//TODO: evaluate buffer size
+		CommandCh: make(chan domain.Command, 100),
+	}
+
+	deviceControlAdapter, err := deviceAdapter.NewDeviceRemoteControlAdapter(&logger, remotedevicecontrollerconf, msgBus)
 	if err != nil {
 		logger.Err(err).Msg("unexpected error while initializing remote device control")
 		return
@@ -34,22 +41,22 @@ func main() {
 	logger.Debug().
 		Msg("Device remote service configured correctly")
 
-	// remoteControlAdapter, err := adapters.NewTelegramRemoteControlAdapter(&logger)
-	// if err != nil {
-	// 	logger.Err(err).Msg("unexpected error while initializing telegram connection")
-	// 	return
-	// }
+	remoteControlAdapter, err := telegramAdapter.NewTelegramRemoteControlAdapter(&logger, msgBus)
+	if err != nil {
+		logger.Err(err).Msg("unexpected error while initializing telegram connection")
+		return
+	}
 
-	// remoteControlService := services.NewRemoteControlService(
-	// 	remoteControlAdapter,
-	// )
+	remoteControlService := services.NewRemoteControlService(
+		remoteControlAdapter,
+	)
 
-	// logger.Debug().
-	// 	Msg("Remove control server configured correctly")
+	logger.Debug().
+		Msg("Remove control server configured correctly")
 
 	go deviceRemoteService.Start(ctx)
 
-	// go remoteControlService.StartServer(ctx)
+	go remoteControlService.StartServer(ctx)
 
 	// Listen for the interrupt signal.
 	<-ctx.Done()

@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
 	"log"
 	"net"
+	"orio-telegram-adapter/internal/protocol"
 	"os"
+	"time"
 )
 
 const (
@@ -14,15 +17,31 @@ const (
 	privateKeyPath   = "/etc/ssl/private/"
 )
 
+func connect(serverAddr string, deviceControlPort string, tlsConf *tls.Config) net.Conn {
+	for {
+		time.Sleep(time.Second)
+		conn, err := tls.Dial(
+			"tcp4",
+			net.JoinHostPort(serverAddr, deviceControlPort),
+			tlsConf,
+		)
+		if err != nil {
+			fmt.Println("Something went wrong while connecting to server:", err)
+			continue
+		}
+		return conn
+	}
+}
+
 func main() {
 	serverAddr, ok := os.LookupEnv("SERVER_ADDR_NAME")
 	if !ok {
 		panic("SERVER_ADDR_NAME env not present")
 	}
 
-	deviceControlPort, ok := os.LookupEnv("LOCAL_DEVICE_CONTROL_PORT")
+	deviceControlPort, ok := os.LookupEnv("DEVICE_CONTROL_PORT")
 	if !ok {
-		panic("LOCAL_DEVICE_CONTROL_PORT env not present")
+		panic("DEVICE_CONTROL_PORT env not present")
 	}
 
 	// Load client certificate and key
@@ -51,29 +70,63 @@ func main() {
 		CurvePreferences: []tls.CurveID{tls.CurveP256},
 	}
 
-	conn, err := tls.Dial(
-		"tcp6",
-		net.JoinHostPort(serverAddr, deviceControlPort),
-		tlsConf,
-	)
-	if err != nil {
-		fmt.Println("Something went wrong while connecting to server:", err)
-		panic(err)
-	}
-	defer conn.Close()
+	for {
+		conn := connect(serverAddr, deviceControlPort, tlsConf)
 
-	// Write and read data over the secure connection
-	data := "Hello from mTLS client!\n"
-	_, err = conn.Write([]byte(data))
-	if err != nil {
-		log.Fatal("Failed to write data:", err)
-	}
+		fmt.Println("handled first handshake stopping looping")
 
-	buf := make([]byte, 1024)
-	n, err := conn.Read(buf)
-	if err != nil {
-		log.Fatal("Failed to read data:", err)
+		scheduleSendMockData(&conn)
+		conn.Close()
 	}
+}
 
-	fmt.Println("Server response:", string(buf[:n]))
+func scheduleSendMockData(conn *net.Conn) {
+	t := time.NewTicker(10 * time.Second)
+	defer t.Stop()
+
+	t2 := time.NewTicker(5 * time.Second)
+	defer t2.Stop()
+
+	go func() {
+		fmt.Println("Unmarshalling from G routine")
+		res, err := protocol.Unmarshal(*conn)
+		fmt.Println("something??")
+		if err != nil {
+			fmt.Printf("\nError catched on return: %s\n", err)
+		}
+		fmt.Printf("\nResponse fetched from mock: %+v\n", res)
+	}()
+
+	for {
+		select {
+		case <-t2.C:
+			fmt.Println("trying to read from tcp socket")
+			fmt.Println("debug info from conn", (*conn).RemoteAddr())
+			fmt.Println("local addr", (*conn).LocalAddr())
+			var gne bytes.Buffer
+			n, err := (*conn).Read(gne.Bytes())
+			if err != nil {
+				fmt.Println("Failed to read from conn", err)
+			}
+			fmt.Printf("read %v bytes \n", n)
+			fmt.Printf("read %x data \n", gne.Bytes())
+		case <-t.C:
+			var rawPayload protocol.OrioHeader
+			rawPayload.DeviceID = 6969
+			rawPayload.Version = 0
+			rawPayload.PayloadLen = 0
+			payload, err := rawPayload.MarshalBinary()
+			if err != nil {
+				log.Printf("client write marshal header error: %s", err)
+				return
+			}
+
+			_, err = (*conn).Write(payload)
+			if err != nil {
+				log.Printf("client socker write errors: %s", err)
+				return
+			}
+			log.Printf("mockmock  client: sent: %#v", payload)
+		}
+	}
 }

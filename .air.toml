@@ -5,7 +5,7 @@ tmp_dir = "./docker-volume-config/tmp"
 [build]
   args_bin = []
   bin = "./docker-volume-config/main"
-  cmd = "go build -o ./docker-volume-config/main ./src/cmd/main.go"
+  cmd = "go build -o ./docker-volume-config/main ./cmd/main.go"
   delay = 1000
   exclude_dir = ["assets", "vendor", "testdata"]
   exclude_file = []
