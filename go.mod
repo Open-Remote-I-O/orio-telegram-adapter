@@ -2,15 +2,13 @@ module orio-telegram-adapter
 
 go 1.24
 
-toolchain go1.24.0
-
 tool (
 	github.com/air-verse/air
 	github.com/magefile/mage
 )
 
 require (
-	github.com/go-telegram/bot v1.14.0
+	github.com/go-telegram/bot v1.14.1
 	github.com/magefile/mage v1.15.0
 	github.com/rs/zerolog v1.33.0
 )
