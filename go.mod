@@ -10,7 +10,7 @@ tool (
 )
 
 require (
-	github.com/go-telegram/bot v1.14.0
+	github.com/go-telegram/bot v1.18.0
 	github.com/magefile/mage v1.15.0
 	github.com/rs/zerolog v1.33.0
 )
